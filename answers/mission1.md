@@ -46,28 +46,28 @@ For each check you implemented, write how you would do it in Python and how you 
 
 | Rule | Python | JavaScript, as in my code |
 |---|---|---|
-| raw is a dictionary or object, not a list | `isinstance(raw, dict)` | `raw !== null && typeof raw === "object" && !Array.isArray(raw)` |
-| name is a non-empty string after trimming | `isinstance(raw.get("name"), str)` then `raw["name"].strip()` | `typeof raw.name === "string"` then `raw.name.trim()` |
-| status is one of the allowed values | `raw.get("status") in allowed_status` | `ALLOWED_STATUS.includes(raw.status)` |
-| online is a real boolean | `isinstance(raw.get("online"), bool)` | `typeof raw.online === "boolean"` |
-| latencyMs is a finite number ≥ 0 | check it is a number, then `math.isfinite(value)` and `value >= 0` | `typeof raw.latencyMs === "number"`, `Number.isFinite(raw.latencyMs)`, and `raw.latencyMs >= 0` |
-| invalid JSON does not crash the program | `try` / `except json.JSONDecodeError` | `try` / `catch` around `JSON.parse(jsonText)` |
+| raw is a dictionary or object, not a list | `isinstance(raw, dict)` | check `raw` is not `null`, is an object, and is not an array |
+| name is a non-empty string after trimming | check it is a string, then `.strip()` | check it is a string, then `.trim()` |
+| status is one of the allowed values | use `in` | use `.includes()` |
+| online is a real boolean | check it is a bool | check `typeof` is `"boolean"` |
+| latencyMs is a finite number ≥ 0 | check it is a number and not below 0 | check it is a number, finite, and not below 0 |
+| invalid JSON does not crash the program | use `try` / `except` | use `try` / `catch` |
 
 ## Questions
 
 1. Why is `latencyMs: 0` a trap for code such as `if (!raw.latencyMs) return null;`?
 
-   > `0` is a real valid number, but JavaScript treats it as falsy. So that check would reject it by mistake.
+   > `0` is valid, but JavaScript treats it like false. That code would reject it by mistake.
 
 2. Your function builds a **new** object and ignores fields like `isAdmin`. Describe in two or three sentences what could go wrong later in an application that copied **every** field it received.
 
-   > An attacker could add fake fields like `isAdmin: true`. If the app copied everything, later code might trust that field by accident.
+   > Someone could add a fake field like `isAdmin: true`. If the app copied it, another part of the app might trust it.
 
 ## Documentation log
 
 | Page I used, with URL | One thing I learned from it |
 |---|---|
-| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof | `typeof` checks the type of a value. |
-| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray | `Array.isArray()` checks if something is an array. |
-| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite | `Number.isFinite()` checks for a real finite number. |
-| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse | `JSON.parse()` can fail, so I used `try` / `catch`. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof | I used `typeof` to check basic types. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray | I used `Array.isArray()` to reject arrays. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite | I used `Number.isFinite()` for latency. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse | I learned `JSON.parse()` can throw an error. |

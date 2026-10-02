@@ -31,7 +31,15 @@ const MAX_NAME_LENGTH = 64;
  *   - Any extra field in raw, for example isAdmin, must NOT appear in the returned object.
  */
 function normalizeService(raw) {
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+  if (raw === null) {
+    return null;
+  }
+
+  if (typeof raw !== "object") {
+    return null;
+  }
+
+  if (Array.isArray(raw)) {
     return null;
   }
 
@@ -43,7 +51,8 @@ function normalizeService(raw) {
     return null;
   }
 
-  if (!ALLOWED_STATUS.includes(raw.status)) {
+  const statusIsAllowed = ALLOWED_STATUS.includes(raw.status);
+  if (statusIsAllowed === false) {
     return null;
   }
 
@@ -51,15 +60,24 @@ function normalizeService(raw) {
     return null;
   }
 
-  if (typeof raw.latencyMs !== "number" || !Number.isFinite(raw.latencyMs) || raw.latencyMs < 0) {
+  const latency = raw.latencyMs;
+  if (typeof latency !== "number") {
+    return null;
+  }
+
+  if (Number.isFinite(latency) === false) {
+    return null;
+  }
+
+  if (latency < 0) {
     return null;
   }
 
   return {
-    name,
+    name: name,
     status: raw.status,
     online: raw.online,
-    latencyMs: raw.latencyMs
+    latencyMs: latency
   };
 }
 
@@ -80,7 +98,15 @@ function parseStatusReport(jsonText) {
     return { services: [], rejected: 0, error: "invalid report" };
   }
 
-  if (parsed === null || typeof parsed !== "object" || !Array.isArray(parsed.services)) {
+  if (parsed === null) {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (typeof parsed !== "object") {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (Array.isArray(parsed.services) === false) {
     return { services: [], rejected: 0, error: "invalid report" };
   }
 
