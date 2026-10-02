@@ -31,7 +31,54 @@ const MAX_NAME_LENGTH = 64;
  *   - Any extra field in raw, for example isAdmin, must NOT appear in the returned object.
  */
 function normalizeService(raw) {
-  // TODO Mission 1
+  if (raw === null) {
+    return null;
+  }
+
+  if (typeof raw !== "object") {
+    return null;
+  }
+
+  if (Array.isArray(raw)) {
+    return null;
+  }
+
+  if (typeof raw.name !== "string") {
+    return null;
+  }
+  const name = raw.name.trim();
+  if (name.length === 0 || name.length > MAX_NAME_LENGTH) {
+    return null;
+  }
+
+  const statusIsAllowed = ALLOWED_STATUS.includes(raw.status);
+  if (statusIsAllowed === false) {
+    return null;
+  }
+
+  if (typeof raw.online !== "boolean") {
+    return null;
+  }
+
+  const latency = raw.latencyMs;
+  if (typeof latency !== "number") {
+    return null;
+  }
+
+  if (Number.isFinite(latency) === false) {
+    return null;
+  }
+
+  if (latency < 0) {
+    return null;
+  }
+
+  return {
+    name: name,
+    status: raw.status,
+    online: raw.online,
+    latencyMs: latency
+  };
 }
 
 /**
@@ -44,7 +91,38 @@ function normalizeService(raw) {
  *   { services: [], rejected: 0, error: "invalid report" }
  */
 function parseStatusReport(jsonText) {
-  // TODO Mission 1
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch (err) {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (parsed === null) {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (typeof parsed !== "object") {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  if (Array.isArray(parsed.services) === false) {
+    return { services: [], rejected: 0, error: "invalid report" };
+  }
+
+  const services = [];
+  let rejected = 0;
+
+  for (const rawService of parsed.services) {
+    const service = normalizeService(rawService);
+    if (service === null) {
+      rejected++;
+    } else {
+      services.push(service);
+    }
+  }
+
+  return { services, rejected, error: null };
 }
 
 // Lets Node's require() see these functions. The browser simply ignores this block.
