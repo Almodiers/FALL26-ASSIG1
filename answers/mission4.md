@@ -23,7 +23,7 @@ Pick your **best** commit message and your **worst** one. Which of the 7 rules d
 
 PR link, inside your fork:
 
-> Add PR link here after pushing the branch.
+> https://github.com/Almodiers/FALL26-ASSIG1/pull/1
 
 ## Creating value: the risk brief
 
