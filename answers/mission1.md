@@ -5,7 +5,39 @@
 Output of `npm run test:m1`, pasted or as a screenshot in `img/`:
 
 ```
-paste here
+> cyse411-assignment1-secure-status-portal@1.0.0 test:m1
+> node tests/mission1.test.js
+
+
+normalizeService()
+  PASS  valid entry is normalized and the name is trimmed
+  PASS  returns a NEW object, not the same reference
+  PASS  extra fields such as isAdmin are dropped
+  PASS  null is rejected
+  PASS  an array is rejected
+  PASS  a string is rejected
+  PASS  blank name is rejected
+  PASS  name longer than 64 chars is rejected
+  PASS  name that is not a string is rejected
+  PASS  status 'UP' is rejected (case matters)
+  PASS  unknown status is rejected
+  PASS  online: "false" (string) is rejected
+  PASS  online: 0 is rejected
+  PASS  online: false (boolean) is accepted
+  PASS  latencyMs: "120" (string) is rejected
+  PASS  negative latency is rejected
+  PASS  Infinity latency is rejected
+  PASS  latencyMs: 0 is accepted (0 is falsy but valid!)
+  PASS  missing latencyMs is rejected
+
+parseStatusReport()
+  PASS  invalid JSON fails safe
+  PASS  missing services array fails safe
+  PASS  services that is not an array fails safe
+  PASS  JSON null fails safe
+  PASS  mixed report keeps valid entries and counts rejected ones
+
+24 passed, 0 failed
 ```
 
 ## Connections: Python to JavaScript
@@ -14,25 +46,28 @@ For each check you implemented, write how you would do it in Python and how you 
 
 | Rule | Python | JavaScript, as in my code |
 |---|---|---|
-| raw is a dictionary or object, not a list | `isinstance(raw, dict)` | |
-| name is a non-empty string after trimming | | |
-| status is one of the allowed values | | |
-| online is a real boolean | | |
-| latencyMs is a finite number ≥ 0 | | |
-| invalid JSON does not crash the program | | |
+| raw is a dictionary or object, not a list | `isinstance(raw, dict)` | `raw !== null && typeof raw === "object" && !Array.isArray(raw)` |
+| name is a non-empty string after trimming | `isinstance(raw.get("name"), str)` then `raw["name"].strip()` | `typeof raw.name === "string"` then `raw.name.trim()` |
+| status is one of the allowed values | `raw.get("status") in allowed_status` | `ALLOWED_STATUS.includes(raw.status)` |
+| online is a real boolean | `isinstance(raw.get("online"), bool)` | `typeof raw.online === "boolean"` |
+| latencyMs is a finite number ≥ 0 | check it is a number, then `math.isfinite(value)` and `value >= 0` | `typeof raw.latencyMs === "number"`, `Number.isFinite(raw.latencyMs)`, and `raw.latencyMs >= 0` |
+| invalid JSON does not crash the program | `try` / `except json.JSONDecodeError` | `try` / `catch` around `JSON.parse(jsonText)` |
 
 ## Questions
 
 1. Why is `latencyMs: 0` a trap for code such as `if (!raw.latencyMs) return null;`?
 
-   > your answer
+   > `0` is a real valid number, but JavaScript treats it as falsy. So that check would reject it by mistake.
 
 2. Your function builds a **new** object and ignores fields like `isAdmin`. Describe in two or three sentences what could go wrong later in an application that copied **every** field it received.
 
-   > your answer
+   > An attacker could add fake fields like `isAdmin: true`. If the app copied everything, later code might trust that field by accident.
 
 ## Documentation log
 
 | Page I used, with URL | One thing I learned from it |
 |---|---|
-| | |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof | `typeof` checks the type of a value. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray | `Array.isArray()` checks if something is an array. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite | `Number.isFinite()` checks for a real finite number. |
+| https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse | `JSON.parse()` can fail, so I used `try` / `catch`. |
